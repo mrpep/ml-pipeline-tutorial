@@ -1,0 +1,9 @@
+tasks.DataFrameDataset:
+    out_cols=['wav', 'classID']
+    preprocessors=[@tasks.ProcessorReadAudio]
+    
+ProcessorReadAudio:
+    max_duration = %MAX_AUDIO_DURATION
+
+
+    

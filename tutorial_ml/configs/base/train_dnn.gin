@@ -1,0 +1,49 @@
+SEED=42
+TRAIN_BATCH_SIZE=16
+VAL_BATCH_SIZE=16
+DEVICE=[0]
+PRECISION=16
+GRAD_ACC=1
+MONITOR_METRIC='val_loss'
+MONITOR_MODE='min'
+MAX_LR=0.0001
+
+execute_pipeline:
+    tasks = [@tasks.set_seed,
+             @tasks.load_dataset,
+             @tasks.partition_by_re,
+             @tasks.make_labels,
+             @tasks.get_dataloaders,
+             @tasks.fit_model]
+    execution_order = 'sequential'
+
+set_seed.seed=%SEED
+
+tasks.get_dataloaders.dataset_cls={'train': @train/tasks.DataFrameDataset, 'validation': @val/tasks.DataFrameDataset}
+tasks.get_dataloaders.dataloader_cls={'train': @train/torch.utils.data.DataLoader, 'validation': @val/torch.utils.data.DataLoader}
+
+train/torch.utils.data.DataLoader:
+    batch_size = %TRAIN_BATCH_SIZE
+    shuffle =True
+
+val/torch.utils.data.DataLoader:
+    batch_size = %VAL_BATCH_SIZE
+    shuffle = False
+
+tasks.fit_model.trainer_cls = @pl.Trainer
+pl.Trainer:
+    logger=@pl.loggers.CSVLogger()
+    devices=%DEVICE
+    callbacks=[@pl.callbacks.ModelCheckpoint(), @pl.callbacks.LearningRateMonitor()]
+    accelerator='gpu'
+    accumulate_grad_batches=%GRAD_ACC
+    num_sanity_val_steps=1
+    precision=%PRECISION
+pl.callbacks.ModelCheckpoint:
+    dirpath=%OUTPUT_DIR
+    save_top_k=2 #Keep best 2 checkpoints
+    monitor=%MONITOR_METRIC
+    mode=%MONITOR_MODE
+pl.loggers.CSVLogger:
+    save_dir=%OUTPUT_DIR
+    name='training_logs'

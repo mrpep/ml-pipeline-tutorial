@@ -1,0 +1,10 @@
+tutorial_ml.tasks: tasks
+tutorial_ml.tasks.models: tasks.models
+torch.utils.data: torch.utils.data
+torch.nn: torch.nn
+torch.nn.functional: torch.nn.functional
+torch.optim: torch.optim
+pytorch_lightning: pl
+pytorch_lightning.loggers: pl.loggers
+pytorch_lightning.callbacks: pl.callbacks
+torchmetrics.classification: torchmetrics.classification
