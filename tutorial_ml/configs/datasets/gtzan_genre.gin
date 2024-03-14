@@ -1,9 +1,9 @@
 MAX_AUDIO_DURATION=4
 
-tasks.load_dataset.reader_fn+=[@tasks.load_gtzan]
-tasks.load_gtzan.data_dir='/mnt/ssd4T/datasets/gtzan'
-tasks.partition_by_re:
+ml_tasks.load_dataset.reader_fn+=[@ml_tasks.load_gtzan]
+ml_tasks.load_gtzan.data_dir='/mnt/ssd4T/datasets/gtzan'
+ml_tasks.partition_by_re:
     column_in='sample_id'
     res = {'validation': '.*8$', 'test': '.*9$', 'train': '^.*[^89]$'}
-tasks.make_labels:
+ml_tasks.make_labels:
     column_in='genre'

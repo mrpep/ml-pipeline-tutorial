@@ -1,9 +1,9 @@
-tasks.DataFrameDataset:
+ml_tasks.DataFrameDataset:
     out_cols=['wav', 'classID']
-    preprocessors=[@tasks.ProcessorReadAudio]
+train/ml_tasks.DataFrameDataset.preprocessors=[@train/ml_tasks.ProcessorReadAudio]
+val/ml_tasks.DataFrameDataset.preprocessors=[@val/ml_tasks.ProcessorReadAudio]
     
-ProcessorReadAudio:
+train/ml_tasks.ProcessorReadAudio:
     max_duration = %MAX_AUDIO_DURATION
-
-
-    
+val/ml_tasks.ProcessorReadAudio:
+    max_duration = None

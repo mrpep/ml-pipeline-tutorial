@@ -25,7 +25,8 @@ class AudioClassifier(pl.LightningModule):
                                             'val_metrics': torch.nn.ModuleList(val_metrics)})
 
     def training_step(self, batch, batch_idx):
-        yhat = self(batch['wav'])
+        self(batch)
+        yhat = batch['yhat']
         y = batch['classID']
         loss = self.classification_loss(yhat,y)
         self.log_metrics('train', yhat, y)
@@ -33,7 +34,8 @@ class AudioClassifier(pl.LightningModule):
         return loss
 
     def validation_step(self, batch):
-        yhat = self(batch['wav'])
+        self.predict(batch)
+        yhat = batch['yhat']
         y = batch['classID']
         loss = self.classification_loss(yhat,y)
         self.log_metrics('val', yhat, y)
@@ -59,3 +61,22 @@ class AudioClassifier(pl.LightningModule):
                                           'frequency': 1}
 
         return opt_config
+
+class UpstreamDownstream(AudioClassifier):
+    def __init__(self, optimizer, lr_scheduler=None, loss=None, metrics=None,
+                 upstream=None,
+                 downstream=None,
+                 num_classes=None):
+
+        super().__init__(optimizer, lr_scheduler, loss, metrics, num_classes)
+        self.upstream = upstream()
+        self.downstream = downstream(self.upstream.embedding_dim, num_classes)
+
+    def forward(self, x):
+        self.upstream(x)
+        x['yhat'] = self.downstream(x['embeddings'])
+
+    def predict(self, x):
+        with torch.no_grad():
+            self.upstream(x)
+            x['yhat'] = self.downstream(x['embeddings'])

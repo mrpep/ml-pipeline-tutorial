@@ -1,0 +1,18 @@
+ml_tasks.fit_model.model_cls=@ml_tasks.models.UpstreamDownstream
+ml_tasks.models.UpstreamDownstream:
+    optimizer=@torch.optim.AdamW
+    loss=@torch.nn.functional.cross_entropy
+    metrics=[@torchmetrics.classification.MulticlassAccuracy]
+    upstream=@ml_tasks.models.EnCodecMAEUpstream
+    downstream=@ml_tasks.models.MLP
+ml_tasks.models.MLP:
+    hidden_dims=[256,128]
+ml_tasks.models.Conv1DNormAct:
+    activation=@torch.nn.ReLU
+    normalization=@torch.nn.BatchNorm1d
+ml_tasks.models.EnCodecMAEUpstream:
+    encodecmae_model='/home/lpepino/encodecmaes/encodecmae-private/encodecmae/experiments/base_model_melspec256toec_fmaonly/upstream_model/pretrain_checkpoints/last.ckpt'
+torch.optim.AdamW:
+    lr=%MAX_LR
+    betas=(0.9,0.95)
+    weight_decay=0.05

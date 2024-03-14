@@ -7,30 +7,35 @@ GRAD_ACC=1
 MONITOR_METRIC='val_loss'
 MONITOR_MODE='min'
 MAX_LR=0.0001
+TRAINING_EPOCHS=100
+
+
 
 execute_pipeline:
-    tasks = [@tasks.set_seed,
-             @tasks.load_dataset,
-             @tasks.partition_by_re,
-             @tasks.make_labels,
-             @tasks.get_dataloaders,
-             @tasks.fit_model]
+    tasks = [@ml_tasks.set_seed,
+             @ml_tasks.load_dataset,
+             @ml_tasks.partition_by_re,
+             @ml_tasks.make_labels,
+             @ml_tasks.get_dataloaders,
+             @ml_tasks.fit_model]
     execution_order = 'sequential'
-
-set_seed.seed=%SEED
-
-tasks.get_dataloaders.dataset_cls={'train': @train/tasks.DataFrameDataset, 'validation': @val/tasks.DataFrameDataset}
-tasks.get_dataloaders.dataloader_cls={'train': @train/torch.utils.data.DataLoader, 'validation': @val/torch.utils.data.DataLoader}
+    
+ml_tasks.set_seed.seed=%SEED
+ml_tasks.get_dataloaders.dataset_cls={'train': @train/ml_tasks.DataFrameDataset, 'validation': @val/ml_tasks.DataFrameDataset}
+ml_tasks.get_dataloaders.dataloader_cls={'train': @train/torch.utils.data.DataLoader, 'validation': @val/torch.utils.data.DataLoader}
 
 train/torch.utils.data.DataLoader:
     batch_size = %TRAIN_BATCH_SIZE
     shuffle =True
-
 val/torch.utils.data.DataLoader:
     batch_size = %VAL_BATCH_SIZE
     shuffle = False
 
-tasks.fit_model.trainer_cls = @pl.Trainer
+torch.utils.data.DataLoader:
+    collate_fn=@ml_tasks.BatchDynamicPadding()
+
+ml_tasks.fit_model.trainer_cls = @pl.Trainer
+
 pl.Trainer:
     logger=@pl.loggers.CSVLogger()
     devices=%DEVICE
@@ -39,6 +44,7 @@ pl.Trainer:
     accumulate_grad_batches=%GRAD_ACC
     num_sanity_val_steps=1
     precision=%PRECISION
+    max_epochs=%TRAINING_EPOCHS
 pl.callbacks.ModelCheckpoint:
     dirpath=%OUTPUT_DIR
     save_top_k=2 #Keep best 2 checkpoints

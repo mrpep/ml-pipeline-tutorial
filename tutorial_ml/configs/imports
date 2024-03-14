@@ -1,5 +1,5 @@
-tutorial_ml.tasks: tasks
-tutorial_ml.tasks.models: tasks.models
+tutorial_ml.tasks: ml_tasks
+tutorial_ml.tasks.models: ml_tasks.models
 torch.utils.data: torch.utils.data
 torch.nn: torch.nn
 torch.nn.functional: torch.nn.functional

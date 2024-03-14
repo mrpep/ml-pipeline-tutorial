@@ -1,13 +1,13 @@
-tasks.fit_model.model_cls=@tasks.models.CNN1D
-tasks.models.CNN1D:
+ml_tasks.fit_model.model_cls=@ml_tasks.models.CNN1D
+ml_tasks.models.CNN1D:
     optimizer=@torch.optim.AdamW
     loss=@torch.nn.functional.cross_entropy
     metrics=[@torchmetrics.classification.MulticlassAccuracy]
-    classification_layer=@tasks.models.MLP
-    cnn_layer=@tasks.models.Conv1DNormAct
-tasks.models.MLP:
+    classification_layer=@ml_tasks.models.MLP
+    cnn_layer=@ml_tasks.models.Conv1DNormAct
+ml_tasks.models.MLP:
     hidden_dims=[256,128]
-tasks.models.Conv1DNormAct:
+ml_tasks.models.Conv1DNormAct:
     activation=@torch.nn.ReLU
     normalization=@torch.nn.BatchNorm1d
 torch.optim.AdamW:

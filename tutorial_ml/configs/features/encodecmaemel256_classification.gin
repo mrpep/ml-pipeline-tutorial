@@ -1,0 +1,23 @@
+ml_tasks.DataFrameDataset:
+    out_cols=['wav', 'wav_features', 'classID']
+
+train/ml_tasks.DataFrameDataset.preprocessors=[@train/ml_tasks.ProcessorReadAudio, @ml_tasks.ProcessorMelspectrogram]
+val/ml_tasks.DataFrameDataset.preprocessors=[@val/ml_tasks.ProcessorReadAudio, @ml_tasks.ProcessorMelspectrogram]
+
+train/ml_tasks.ProcessorReadAudio:
+    max_duration = %MAX_AUDIO_DURATION
+val/ml_tasks.ProcessorReadAudio:
+    max_duration = None
+
+ml_tasks.ProcessorMelspectrogram:
+    key_in = 'wav'
+    key_out = 'wav_features'
+    sample_frequency=24000
+    frame_shift=13.28
+    frame_length=26.56
+    htk_compat=True
+    use_energy=False
+    window_type='hanning'
+    num_mel_bins=256
+    dither=0.0
+    norm_stats=[-6.12, 4.82]
