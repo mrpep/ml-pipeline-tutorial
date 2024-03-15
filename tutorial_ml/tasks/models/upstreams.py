@@ -13,6 +13,13 @@ def load_model(ckpt):
     return model
 
 class EnCodecMAEUpstream(torch.nn.Module):
+    """
+    Module to extract embeddings from an EnCodecMAE model.
+
+    Args:
+        encodecmae_model: Path to the EnCodecMAE model.
+        layer (int, optional): Layer index to extract embeddings from. Defaults to -1.
+    """
     def __init__(self, encodecmae_model,
                  layer=-1):
 

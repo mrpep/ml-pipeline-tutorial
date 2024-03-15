@@ -3,6 +3,16 @@ import pytorch_lightning as pl
 import inspect
 
 class AudioClassifier(pl.LightningModule):
+    """
+    Lightning Module for audio classification tasks.
+
+    Args:
+        optimizer (torch.optim.Optimizer): Optimizer for training.
+        lr_scheduler (torch.optim.lr_scheduler._LRScheduler, optional): Learning rate scheduler. Defaults to None.
+        loss (torch.nn.Module, optional): Loss function. Defaults to torch.nn.CrossEntropyLoss.
+        metrics (list of callable, optional): List of evaluation metrics functions. Defaults to None.
+        num_classes (int, optional): Number of classes for classification. Defaults to None.
+    """
     def __init__(self, optimizer, lr_scheduler=None,
                  loss=torch.nn.CrossEntropyLoss,
                  metrics=None, num_classes=None):
@@ -63,6 +73,18 @@ class AudioClassifier(pl.LightningModule):
         return opt_config
 
 class UpstreamDownstream(AudioClassifier):
+    """
+    Combined Upstream-Downstream model for audio classification tasks.
+
+    Args:
+        optimizer (torch.optim.Optimizer): Optimizer for training.
+        lr_scheduler (torch.optim.lr_scheduler._LRScheduler, optional): Learning rate scheduler. Defaults to None.
+        loss (torch.nn.Module, optional): Loss function. Defaults to None.
+        metrics (list of callable, optional): List of evaluation metrics functions. Defaults to None.
+        upstream (torch.nn.Module, optional): Upstream model. Defaults to None.
+        downstream (torch.nn.Module, optional): Downstream model. Defaults to None.
+        num_classes (int, optional): Number of classes for classification. Defaults to None.
+    """
     def __init__(self, optimizer, lr_scheduler=None, loss=None, metrics=None,
                  upstream=None,
                  downstream=None,

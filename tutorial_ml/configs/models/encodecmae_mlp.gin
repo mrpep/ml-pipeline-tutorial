@@ -1,3 +1,5 @@
+ENCODECMAE_PATH='/mnt/shared/alpha/home/lpepino/encodecmaes/encodecmae-private/encodecmae/experiments/base_model_melspec256toec_fmaonly/upstream_model/pretrain_checkpoints/last.ckpt'
+
 ml_tasks.fit_model.model_cls=@ml_tasks.models.UpstreamDownstream
 ml_tasks.models.UpstreamDownstream:
     optimizer=@torch.optim.AdamW
@@ -12,7 +14,7 @@ ml_tasks.models.Conv1DNormAct:
     activation=@torch.nn.ReLU
     normalization=@torch.nn.BatchNorm1d
 ml_tasks.models.EnCodecMAEUpstream:
-    encodecmae_model='/mnt/shared/alpha/home/lpepino/encodecmaes/encodecmae-private/encodecmae/experiments/base_model_melspec256toec_fmaonly/upstream_model/pretrain_checkpoints/last.ckpt'
+    encodecmae_model=%ENCODECMAE_PATH
 torch.optim.AdamW:
     lr=%MAX_LR
     betas=(0.9,0.95)
