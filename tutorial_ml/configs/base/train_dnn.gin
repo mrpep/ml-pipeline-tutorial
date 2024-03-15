@@ -8,6 +8,9 @@ MONITOR_METRIC='val_loss'
 MONITOR_MODE='min'
 MAX_LR=0.0001
 TRAINING_EPOCHS=100
+VAL_WORKERS=4
+TRAIN_WORKERS=8
+TEST_WORKERS=4
 
 
 
@@ -17,19 +20,28 @@ execute_pipeline:
              @ml_tasks.partition_by_re,
              @ml_tasks.make_labels,
              @ml_tasks.get_dataloaders,
-             @ml_tasks.fit_model]
+             @ml_tasks.fit_model,
+             @ml_tasks.eval_model]
     execution_order = 'sequential'
     
 ml_tasks.set_seed.seed=%SEED
-ml_tasks.get_dataloaders.dataset_cls={'train': @train/ml_tasks.DataFrameDataset, 'validation': @val/ml_tasks.DataFrameDataset}
-ml_tasks.get_dataloaders.dataloader_cls={'train': @train/torch.utils.data.DataLoader, 'validation': @val/torch.utils.data.DataLoader}
+ml_tasks.get_dataloaders.dataset_cls={'train': @train/ml_tasks.DataFrameDataset, 'validation': @val/ml_tasks.DataFrameDataset, 'test': @test/ml_tasks.DataFrameDataset}
+ml_tasks.get_dataloaders.dataloader_cls={'train': @train/torch.utils.data.DataLoader, 'validation': @val/torch.utils.data.DataLoader, 'test': @test/torch.utils.data.DataLoader}
 
 train/torch.utils.data.DataLoader:
     batch_size = %TRAIN_BATCH_SIZE
     shuffle =True
+    num_workers = %TRAIN_WORKERS
+
 val/torch.utils.data.DataLoader:
     batch_size = %VAL_BATCH_SIZE
     shuffle = False
+    num_workers = %VAL_WORKERS
+
+test/torch.utils.data.DataLoader:
+    batch_size = 1
+    shuffle = False
+    num_workers = %TEST_WORKERS
 
 torch.utils.data.DataLoader:
     collate_fn=@ml_tasks.BatchDynamicPadding()
@@ -47,7 +59,8 @@ pl.Trainer:
     max_epochs=%TRAINING_EPOCHS
 pl.callbacks.ModelCheckpoint:
     dirpath=%OUTPUT_DIR
-    save_top_k=2 #Keep best 2 checkpoints
+    save_top_k=1 #Keep best checkpoint
+    save_last=True #Keep last checkpoint
     monitor=%MONITOR_METRIC
     mode=%MONITOR_MODE
 pl.loggers.CSVLogger:

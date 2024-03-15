@@ -8,3 +8,4 @@ pytorch_lightning: pl
 pytorch_lightning.loggers: pl.loggers
 pytorch_lightning.callbacks: pl.callbacks
 torchmetrics.classification: torchmetrics.classification
+sklearn.metrics: sklearn.metrics

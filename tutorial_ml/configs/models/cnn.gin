@@ -1,7 +1,7 @@
 ml_tasks.fit_model.model_cls=@ml_tasks.models.CNN1D
 ml_tasks.models.CNN1D:
     optimizer=@torch.optim.AdamW
-    loss=@torch.nn.functional.cross_entropy
+    loss=@torch.nn.CrossEntropyLoss
     metrics=[@torchmetrics.classification.MulticlassAccuracy]
     classification_layer=@ml_tasks.models.MLP
     cnn_layer=@ml_tasks.models.Conv1DNormAct

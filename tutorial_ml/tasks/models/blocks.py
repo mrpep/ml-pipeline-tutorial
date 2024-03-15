@@ -3,7 +3,8 @@ import torch
 class MLP(torch.nn.Module):
     def __init__(self, dim_in, dim_out, hidden_dims, 
                  activation=torch.nn.ReLU, 
-                 final_activation=False):
+                 final_activation=False,
+                 pool_input=False):
 
         super().__init__()
         dim_in = [dim_in] + hidden_dims
@@ -15,8 +16,11 @@ class MLP(torch.nn.Module):
         else:
             layers.append(torch.nn.Linear(dim_in[-1],dim_out[-1]))
         self.model = torch.nn.Sequential(*layers)
+        self.pool_input = pool_input
 
     def forward(self, x):
+        if self.pool_input:
+            x = x.mean(dim=1)
         return self.model(x)
 
 class Conv1DNormAct(torch.nn.Module):

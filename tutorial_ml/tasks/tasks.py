@@ -11,6 +11,7 @@ import copy
 from torch.utils.data import Dataset, DataLoader
 import inspect
 import torchaudio
+from scipy.special import softmax
 
 class BatchDynamicPadding:
     def __call__(self, x):
@@ -75,9 +76,30 @@ class DataFrameDataset(Dataset):
     def __len__(self):
         return len(self._metadata)
 
+def discard_samples(df, column, list_file):
+    with open(list_file,'r') as f:
+        discard = f.read().splitlines()
+    df = df.loc[~df[column].isin(discard)]
+    return df
+
+def find_last_ckpt(path):
+    ckpts = list(Path(path).rglob('*.ckpt'))
+    if len(ckpts) > 0:
+        stems = [p.stem for p in ckpts]
+        print(stems)
+        if 'last' in stems:
+            ckpt = Path(path, 'last.ckpt')
+        else:
+            steps = [int(p.stem.split('-')[-1].split('step=')[-1]) for p in ckpts]
+            ckpt = ckpts[steps.index(max(steps))]
+        logger.info('Restoring training from checkpoint: {}'.format(ckpt))
+    else:
+        ckpt = None
+    return ckpt
+
 def fit_model(state, model_cls=None, trainer_cls=None, 
               key_dataloaders='dataloaders', key_out = 'model',
-              from_checkpoint=None, checkpoint_folder='checkpoints'):
+              from_checkpoint='last', checkpoint_folder='checkpoints'):
 
     #Automatically pass number of classes to model:
     if 'num_classes' in inspect.signature(model_cls.__init__).parameters and 'class_map' in state:
@@ -88,12 +110,47 @@ def fit_model(state, model_cls=None, trainer_cls=None,
     model = model_cls(**kwargs)
     trainer = trainer_cls()
     trainer.checkpoint_callback.dirpath = trainer.checkpoint_callback.dirpath + '/{}'.format(checkpoint_folder)
+
+    if from_checkpoint == 'last':
+        from_checkpoint = find_last_ckpt(trainer.checkpoint_callback.dirpath)
+
     trainer.fit(model,
                 state[key_dataloaders]['train'],
                 state[key_dataloaders]['validation'],
                 ckpt_path=from_checkpoint)
-    
+
     state[key_out] = model
+    state['best_model_path'] = trainer.checkpoint_callback.best_model_path
+
+    return state
+
+def eval_model(state, key_model='model', key_dataloaders='dataloaders', metrics=None):
+    model = state['model']
+    model.load_state_dict(torch.load(state['best_model_path'])['state_dict'])
+    model.eval()
+    test_dataset = state[key_dataloaders]['test']
+    logits = []
+    targets = []
+    for x in tqdm(test_dataset):
+        model.predict(x)
+        logits.append(x['yhat'].detach().cpu().numpy())
+        targets.append(x['classID'].detach().cpu().numpy())
+    targets = np.concatenate(targets)
+    logits = np.concatenate(logits)
+
+    metric_results = {}
+    probs = softmax(logits,axis=-1)
+    preds = np.argmax(probs,axis=-1)
+    for m in metrics:
+        type_yhat = list(inspect.signature(m).parameters.keys())[1]
+        if 'score' in type_yhat:
+            metric_results['test_{}'.format(m.__name__)] = m(targets, probs)
+        elif 'pred' in type_yhat:
+            metric_results['test_{}'.format(m.__name__)] = m(targets, preds)
+        else:
+            raise Exception('Second arg of metric should contain pred or score in its name')
+    
+    state['metrics'] = metric_results
     return state
 
 def get_dataloaders(state, dataset_cls, dataloader_cls,
@@ -135,10 +192,11 @@ def load_gtzan(data_dir):
         mi = {'filename': str(w.resolve()),
               'frames': wav_info.frames,
               'duration': wav_info.duration,
-              'sample_id': w.stem.split('.')[1],
+              'segment_id': w.stem.split('.')[1],
               'genre': w.stem.split('.')[0],
               'sr': wav_info.samplerate,
-              'dataset': 'gtzan'}
+              'dataset': 'gtzan',
+              'id':w.stem}
         metadata.append(mi)
     return pd.DataFrame(metadata)
 

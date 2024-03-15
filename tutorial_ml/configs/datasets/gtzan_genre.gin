@@ -1,9 +1,17 @@
 MAX_AUDIO_DURATION=4
 
 ml_tasks.load_dataset.reader_fn+=[@ml_tasks.load_gtzan]
-ml_tasks.load_gtzan.data_dir='/mnt/ssd4T/datasets/gtzan'
+ml_tasks.load_dataset.filters+=[@ml_tasks.discard_samples]
+ml_tasks.load_gtzan.data_dir='/mnt/shared/alpha/mnt/ssd4T/datasets/gtzan'
+
+ml_tasks.discard_samples:
+    column='id'
+    list_file='lists/gtzan_repeated_corrupted_sturm.list'
 ml_tasks.partition_by_re:
-    column_in='sample_id'
+    column_in='segment_id'
     res = {'validation': '.*8$', 'test': '.*9$', 'train': '^.*[^89]$'}
 ml_tasks.make_labels:
     column_in='genre'
+
+ml_tasks.eval_model:
+    metrics=[@sklearn.metrics.accuracy_score, @sklearn.metrics.confusion_matrix]

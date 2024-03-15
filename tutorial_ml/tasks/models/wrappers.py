@@ -4,13 +4,13 @@ import inspect
 
 class AudioClassifier(pl.LightningModule):
     def __init__(self, optimizer, lr_scheduler=None,
-                 loss=torch.nn.functional.cross_entropy,
+                 loss=torch.nn.CrossEntropyLoss,
                  metrics=None, num_classes=None):
 
         super().__init__()
         self.optimizer = optimizer
         self.lr_scheduler = lr_scheduler
-        self.classification_loss = loss
+        self.classification_loss = loss()
         metrics_dict = {}
         train_metrics = []
         val_metrics = []

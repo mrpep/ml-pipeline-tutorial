@@ -3,10 +3,13 @@ ml_tasks.DataFrameDataset:
 
 train/ml_tasks.DataFrameDataset.preprocessors=[@train/ml_tasks.ProcessorReadAudio, @ml_tasks.ProcessorMelspectrogram]
 val/ml_tasks.DataFrameDataset.preprocessors=[@val/ml_tasks.ProcessorReadAudio, @ml_tasks.ProcessorMelspectrogram]
+test/ml_tasks.DataFrameDataset.preprocessors=[@test/ml_tasks.ProcessorReadAudio, @ml_tasks.ProcessorMelspectrogram]
 
 train/ml_tasks.ProcessorReadAudio:
     max_duration = %MAX_AUDIO_DURATION
 val/ml_tasks.ProcessorReadAudio:
+    max_duration = None
+test/ml_tasks.ProcessorReadAudio:
     max_duration = None
 
 ml_tasks.ProcessorMelspectrogram:
